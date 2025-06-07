@@ -15,19 +15,20 @@ def scrape_bndry():
     events = []
 
     for event in soup.select('article.eventlist-event'):
-        title_tag = event.select_one('h1.eventlist-date')
-        date_tag = event.select_one('li.eventlist-meta-time')
-        time_tag = event.select_one('li.eventlist-meta-title')
+        title_tag = event.select_one('h1.eventlist-title')
+        date_tag = event.select_one('li.eventlist-meta-date')
+        time_tag = event.select_one('li.eventlist-meta-time')
         location_tag = event.select_one('li.eventlist-meta-address')
 
         title = title_tag.get_text(strip=True) if title_tag else "Untitled"
         date = date_tag.get_text(strip=True) if date_tag else "Unknown Date"
-        time = time_tag.get_text(strip=True) if time_tag else ""
+        time = time_tag.get_text(strip=True) if time_tag else "Unknown Time"
         location = location_tag.get_text(strip=True) if location_tag else "TBA"
 
         events.append({
-            'date': f"{date} {time}".strip(),
             'title': title,
+            'date': date,
+            'time': time,
             'location': location,
             'source': 'BNDRY'
         })
@@ -47,7 +48,7 @@ template = """
     <h1>Local Events Calendar</h1>
     <ul>
     {% for event in events %}
-        <li><strong>{{ event.date }}</strong> – {{ event.title }} at {{ event.location }} ({{ event.source }})</li>
+        <li>{{ event.date }}, {{ event.time }} — <strong>{{ event.title }}</strong>, {{ event.location }} ({{ event.source }})</li>
     {% else %}
         <li>No events found.</li>
     {% endfor %}
