@@ -15,9 +15,9 @@ def scrape_bndry():
     events = []
 
     for event in soup.select('article.eventlist-event'):
-        title_tag = event.select_one('h1.eventlist-title')
-        date_tag = event.select_one('li.eventlist-meta-date')
-        time_tag = event.select_one('li.eventlist-meta-time')
+        title_tag = event.select_one('h1.eventlist-date')
+        date_tag = event.select_one('li.eventlist-meta-time')
+        time_tag = event.select_one('li.eventlist-meta-title')
         location_tag = event.select_one('li.eventlist-meta-address')
 
         title = title_tag.get_text(strip=True) if title_tag else "Untitled"
