@@ -14,6 +14,7 @@ def scrape_bndry():
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, 'html.parser')
     events = []
+    today = datetime.today()
 
     for event in soup.select('article.eventlist-event'):
         title_tag = event.select_one('h1.eventlist-title')
@@ -26,23 +27,22 @@ def scrape_bndry():
         time_str = time_tag.get_text(strip=True) if time_tag else "Unknown Time"
         location = location_tag.get_text(strip=True) if location_tag else "TBA"
 
-        # Try to parse the date into a sortable format
+        # Try to convert date to datetime object
         try:
-            date_obj = datetime.strptime(date_str, '%B %d, %Y')
-        except Exception:
-            date_obj = datetime.max  # Push to bottom if unreadable
+            event_date = datetime.strptime(date_str, '%B %d, %Y')
+        except ValueError:
+            continue  # Skip if date can't be parsed
 
-        events.append({
-            'title': title,
-            'date': date_str,
-            'time': time_str,
-            'location': location,
-            'source': 'BNDRY',
-            'sort_date': date_obj
-        })
+        # Only include future events
+        if event_date >= today:
+            events.append({
+                'title': title,
+                'date': date_str,
+                'time': time_str,
+                'location': location,
+                'source': 'BNDRY'
+            })
 
-    # Sort by date (soonest first)
-    events.sort(key=lambda x: x['sort_date'])
     return events
 
 # ---- AGGREGATOR ----
