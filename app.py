@@ -47,7 +47,7 @@ template = """
     <h1>Local Events Calendar</h1>
     <ul>
     {% for event in events %}
-        <li><strong>{{ event.title }}</strong> – {{ event.date }} at {{ event.location }} ({{ event.source }})</li>
+        <li><strong>{{ event.date }}</strong> – {{ event.title }} at {{ event.location }} ({{ event.source }})</li>
     {% else %}
         <li>No events found.</li>
     {% endfor %}
