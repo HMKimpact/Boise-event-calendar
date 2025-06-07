@@ -57,7 +57,9 @@ template = """
 """
 
 # ---- FLASK ROUTE ----
-@app.route('/')
+def get_all_events():
+    return scrape_bndry()
+    @app.route('/')
 def calendar():
     events = get_all_events()
     print(events)  # for Render logs
