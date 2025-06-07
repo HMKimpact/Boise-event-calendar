@@ -47,7 +47,7 @@ def scrape_bndry():
 def get_all_events():
     return scrape_bndry()
 
-# ---- HTML TEMPLATE (FullCalendar) ----
+# ---- HTML TEMPLATE with FullCalendar ----
 template = """
 <!DOCTYPE html>
 <html>
@@ -124,7 +124,7 @@ def events_json():
 
     return jsonify(calendar_events)
 
-# ---- START SERVER ----
+# ---- RUN SERVER ----
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
