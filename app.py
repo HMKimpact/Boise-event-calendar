@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, render_template_string
+from flask import Flask, render_template_string, jsonify
 import os
 from datetime import datetime
 
@@ -27,12 +27,10 @@ def scrape_bndry():
         location = location_tag.get_text(strip=True) if location_tag else "TBA"
         raw_datetime = datetime_tag.get('datetime') if datetime_tag else None
 
-        print("DATETIME ATTR:", raw_datetime)  # for debugging
-
         try:
             event_date = datetime.strptime(raw_datetime, '%Y-%m-%d')
-        except Exception:
-            continue  # Skip broken or past events
+        except:
+            continue
 
         if event_date >= today:
             events.append({
@@ -49,43 +47,58 @@ def scrape_bndry():
 def get_all_events():
     return scrape_bndry()
 
-# ---- HTML TEMPLATE ----
+# ---- HTML TEMPLATE (FullCalendar) ----
 template = """
 <!DOCTYPE html>
 <html>
 <head>
   <title>Boise Events Calendar</title>
+  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js'></script>
   <style>
     body {
       font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    #calendar {
+      max-width: 900px;
+      margin: 0 auto;
     }
   </style>
 </head>
 <body>
-    <h1>Boise Events Calendar</h1>
-    <ul>
-    {% for event in events %}
-        <li>{{ event.date }}, {{ event.time }} — <strong>{{ event.title }}</strong>, {{ event.location }} ({{ event.source }})</li>
-    {% else %}
-        <li>No events found.</li>
-    {% endfor %}
-    </ul>
+  <h1>Boise Events Calendar</h1>
+  <div id='calendar'></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var calendarEl = document.getElementById('calendar');
+
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: '/events.json',
+        eventDidMount: function (info) {
+          info.el.title = info.event.extendedProps.display_date + ' at ' +
+                          info.event.extendedProps.time + '\\n' +
+                          info.event.extendedProps.location + ' (' +
+                          info.event.extendedProps.source + ')';
+        }
+      });
+
+      calendar.render();
+    });
+  </script>
 </body>
 </html>
 """
 
-# ---- FLASK ROUTE ----
+# ---- MAIN ROUTE ----
 @app.route('/')
 def calendar():
     events = get_all_events()
-    print(events)  # for Render logs
     return render_template_string(template, events=events)
 
-# ---- RUN SERVER ON CORRECT PORT ----
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
-
+# ---- JSON ROUTE FOR CALENDAR ----
 @app.route('/events.json')
 def events_json():
     events = get_all_events()
@@ -93,7 +106,6 @@ def events_json():
 
     for event in events:
         try:
-            # Convert for FullCalendar's use
             date_obj = datetime.strptime(event['date'], '%B %d, %Y')
             iso_date = date_obj.strftime('%Y-%m-%d')
         except Exception:
@@ -111,3 +123,8 @@ def events_json():
         })
 
     return jsonify(calendar_events)
+
+# ---- START SERVER ----
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
