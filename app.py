@@ -26,8 +26,8 @@ def scrape_bndry():
         location = location_tag.get_text(strip=True) if location_tag else "TBA"
 
         events.append({
-            'title': title,
             'date': f"{date} {time}".strip(),
+            'title': title,
             'location': location,
             'source': 'BNDRY'
         })
