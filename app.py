@@ -6,6 +6,19 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+# ---- FLEXIBLE DATE PARSER ----
+def parse_date_flexibly(date_str):
+    for fmt in ['%B %d, %Y', '%A, %B %d, %Y', '%A, %B %d']:
+        try:
+            parsed = datetime.strptime(date_str, fmt)
+            # If the year was missing, assume current year
+            if '%Y' not in fmt:
+                parsed = parsed.replace(year=datetime.today().year)
+            return parsed
+        except ValueError:
+            continue
+    return None  # unparseable
+
 # ---- SCRAPE BNDRY ----
 def scrape_bndry():
     url = "https://www.bndry.club/club-calendar"
@@ -27,13 +40,12 @@ def scrape_bndry():
         time_str = time_tag.get_text(strip=True) if time_tag else "Unknown Time"
         location = location_tag.get_text(strip=True) if location_tag else "TBA"
 
-        # Try to convert date to datetime object
-        try:
-            event_date = datetime.strptime(date_str, '%B %d, %Y')
-        except ValueError:
-            continue  # Skip if date can't be parsed
+        print("RAW DATE:", date_str)  # For debugging in Render logs
 
-        # Only include future events
+        event_date = parse_date_flexibly(date_str)
+        if not event_date:
+            continue  # skip if unparseable
+
         if event_date >= today:
             events.append({
                 'title': title,
