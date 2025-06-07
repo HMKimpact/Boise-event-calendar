@@ -85,3 +85,29 @@ def calendar():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+@app.route('/events.json')
+def events_json():
+    events = get_all_events()
+    calendar_events = []
+
+    for event in events:
+        try:
+            # Convert for FullCalendar's use
+            date_obj = datetime.strptime(event['date'], '%B %d, %Y')
+            iso_date = date_obj.strftime('%Y-%m-%d')
+        except Exception:
+            continue
+
+        calendar_events.append({
+            "title": event['title'],
+            "start": iso_date,
+            "extendedProps": {
+                "display_date": event['date'],
+                "time": event['time'],
+                "location": event['location'],
+                "source": event['source']
+            }
+        })
+
+    return jsonify(calendar_events)
