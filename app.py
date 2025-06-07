@@ -57,9 +57,7 @@ template = """
 """
 
 # ---- FLASK ROUTE ----
-def get_all_events():
-    return scrape_bndry()
-    @app.route('/')
+@app.route('/')
 def calendar():
     events = get_all_events()
     print(events)  # for Render logs
@@ -69,4 +67,3 @@ def calendar():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
