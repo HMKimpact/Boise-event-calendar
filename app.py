@@ -1,4 +1,4 @@
-import requests
+iimport requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template_string
 import os
@@ -11,13 +11,12 @@ def parse_date_flexibly(date_str):
     for fmt in ['%B %d, %Y', '%A, %B %d, %Y', '%A, %B %d']:
         try:
             parsed = datetime.strptime(date_str, fmt)
-            # If the year was missing, assume current year
             if '%Y' not in fmt:
                 parsed = parsed.replace(year=datetime.today().year)
             return parsed
         except ValueError:
             continue
-    return None  # unparseable
+    return None
 
 # ---- SCRAPE BNDRY ----
 def scrape_bndry():
@@ -40,11 +39,11 @@ def scrape_bndry():
         time_str = time_tag.get_text(strip=True) if time_tag else "Unknown Time"
         location = location_tag.get_text(strip=True) if location_tag else "TBA"
 
-        print("RAW DATE:", date_str)  # For debugging in Render logs
+        print("RAW DATE:", date_str)
 
         event_date = parse_date_flexibly(date_str)
         if not event_date:
-            continue  # skip if unparseable
+            continue
 
         if event_date >= today:
             events.append({
@@ -65,11 +64,14 @@ def get_all_events():
 template = """
 <!DOCTYPE html>
 <html>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-  }
-<head><title>Boise Events Calendar</title></head>
+<head>
+  <title>Boise Events Calendar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
 <body>
     <h1>Boise Events Calendar</h1>
     <ul>
@@ -87,10 +89,11 @@ template = """
 @app.route('/')
 def calendar():
     events = get_all_events()
-    print(events)  # for Render logs
+    print(events)
     return render_template_string(template, events=events)
 
 # ---- RUN SERVER ON CORRECT PORT ----
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
