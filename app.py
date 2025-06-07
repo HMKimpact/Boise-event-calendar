@@ -65,9 +65,9 @@ def get_all_events():
 template = """
 <!DOCTYPE html>
 <html>
-<head><title>Local Events Calendar</title></head>
+<head><title>Boise Events Calendar</title></head>
 <body>
-    <h1>Local Events Calendar</h1>
+    <h1>Boise Events Calendar</h1>
     <ul>
     {% for event in events %}
         <li>{{ event.date }}, {{ event.time }} — <strong>{{ event.title }}</strong>, {{ event.location }} ({{ event.source }})</li>
