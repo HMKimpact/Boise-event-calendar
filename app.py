@@ -6,18 +6,6 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ---- FLEXIBLE DATE PARSER ----
-def parse_date_flexibly(date_str):
-    for fmt in ['%B %d, %Y', '%A, %B %d, %Y', '%A, %B %d']:
-        try:
-            parsed = datetime.strptime(date_str, fmt)
-            if '%Y' not in fmt:
-                parsed = parsed.replace(year=datetime.today().year)
-            return parsed
-        except ValueError:
-            continue
-    return None
-
 # ---- SCRAPE BNDRY ----
 def scrape_bndry():
     url = "https://www.bndry.club/club-calendar"
@@ -30,25 +18,26 @@ def scrape_bndry():
 
     for event in soup.select('article.eventlist-event'):
         title_tag = event.select_one('h1.eventlist-title')
-        date_tag = event.select_one('li.eventlist-meta-date')
         time_tag = event.select_one('li.eventlist-meta-time')
         location_tag = event.select_one('li.eventlist-meta-address')
+        datetime_tag = event.select_one('time')
 
         title = title_tag.get_text(strip=True) if title_tag else "Untitled"
-        date_str = date_tag.get_text(strip=True) if date_tag else "Unknown Date"
         time_str = time_tag.get_text(strip=True) if time_tag else "Unknown Time"
         location = location_tag.get_text(strip=True) if location_tag else "TBA"
+        raw_datetime = datetime_tag.get('datetime') if datetime_tag else None
 
-        print("RAW DATE:", date_str)
+        print("DATETIME ATTR:", raw_datetime)  # for debugging
 
-        event_date = parse_date_flexibly(date_str)
-        if not event_date:
-            continue
+        try:
+            event_date = datetime.strptime(raw_datetime, '%Y-%m-%d')
+        except Exception:
+            continue  # Skip broken or past events
 
         if event_date >= today:
             events.append({
                 'title': title,
-                'date': date_str,
+                'date': event_date.strftime('%B %d, %Y'),
                 'time': time_str,
                 'location': location,
                 'source': 'BNDRY'
@@ -89,11 +78,10 @@ template = """
 @app.route('/')
 def calendar():
     events = get_all_events()
-    print(events)
+    print(events)  # for Render logs
     return render_template_string(template, events=events)
 
 # ---- RUN SERVER ON CORRECT PORT ----
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
