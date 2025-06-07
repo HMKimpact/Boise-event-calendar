@@ -65,6 +65,10 @@ def get_all_events():
 template = """
 <!DOCTYPE html>
 <html>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+  }
 <head><title>Boise Events Calendar</title></head>
 <body>
     <h1>Boise Events Calendar</h1>
